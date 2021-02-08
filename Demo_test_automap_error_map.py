@@ -38,7 +38,7 @@ k_mask_idx1, k_mask_idx2 = read_automap_k_space_mask();
 N = 128
 size_zoom = 80
 
-HCP_nbr = 1033 # Use HCP_nbr 1002 to genereate the other dataset
+HCP_nbr = 1004 # Use HCP_nbr 1002 to genereate the other dataset
 data = scipy.io.loadmat(join(src_data, f'HCP_mgh_{HCP_nbr}_T2_subset_N_128.mat'));
 
 mri_data = data['im'];

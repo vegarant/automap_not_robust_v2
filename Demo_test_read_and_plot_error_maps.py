@@ -5,10 +5,10 @@ from os.path import join
 import os
 
 HCP_nbr1 = 1002
-HCP_nbr2 = 1033
+HCP_nbr2 = 1004
 
-im_nbrs1 = [37, 39, 43, 49]
-im_nbrs2 = [2]
+im_nbrs1 = [37, 49] # 39, 43
+im_nbrs2 = [2, 8]
 
 HCP = [HCP_nbr1]*len(im_nbrs1) + [HCP_nbr2]*len(im_nbrs2) 
 im_nbrs = im_nbrs1 + im_nbrs2

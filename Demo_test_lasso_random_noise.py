@@ -19,6 +19,7 @@ from optimization.utils import estimate_sparsity, generate_weight_matrix
 from tfwavelets.dwtcoeffs import get_wavelet
 from tfwavelets.nodes import idwt2d
 from PIL import Image
+import matplotlib.image as mpimg;
 
 from adv_tools_PNAS.automap_config import src_data;
 from adv_tools_PNAS.adversarial_tools import l2_norm_of_tensor
@@ -62,7 +63,7 @@ if not (os.path.isdir(dest_plots)):
 n_iter = 1000
 tau = 0.6
 sigma = 0.6
-lam = 0.0001
+lam = 0.001
 
 # Parameters for CS algorithm
 pl_sigma = tf.compat.v1.placeholder(dtype, shape=(), name='sigma')
@@ -110,18 +111,31 @@ print('np.amax(im1): ', np.amax(im1));
 print('np.amin(im1): ', np.amin(im1));
 print('im1.dtype: ', im1.dtype);
 
-mri_data = np.zeros([4, N, N], dtype=sdtype)
-mri_data[0, :, :] = im1
-mri_data[1, :, :] = im2
-mri_data[2, :, :] = im1
-mri_data[3, :, :] = im2
 
-noise_dict    = scipy.io.loadmat(join(src_noise, 'noise_20_automap.mat')) 
-noise_gauss   = noise_dict['noise_gauss'];
-noise_poisson = noise_dict['noise_poisson'];
+HCP_nbr = 1002
+data = scipy.io.loadmat(join(src_data, f'HCP_mgh_{HCP_nbr}_T2_subset_N_128.mat'));
 
-mri_data[0:2, :, :] = mri_data[0:2, :, :] + noise_gauss
-mri_data[2: , :, :] = mri_data[2: , :, :] + noise_poisson
+mri_data = data['im'];
+new_im1 = mpimg.imread(join(src_data, 'brain1_128_anonymous.png'))
+#new_im2 = mpimg.imread(join(src_data, 'brain2_128_anonymous.png'))
+
+mri_data = np.zeros([6, N,N], dtype=sdtype)
+mri_data[0, :, :] = new_im1
+mri_data[1, :, :] = data['im'][36]
+mri_data[2, :, :] = new_im1
+mri_data[3, :, :] = data['im'][36]
+mri_data[4, :, :] = new_im1
+mri_data[5, :, :] = data['im'][36]
+
+p = 0.04
+
+noise_dict    = scipy.io.loadmat(join(src_noise, f'noise_{round(1000*p)}_automap.mat')) 
+noise_gauss1   = noise_dict['noise_gauss1'];
+noise_gauss2 = noise_dict['noise_gauss2'];
+
+mri_data[0:2, :, :] = mri_data[0:2, :, :] 
+mri_data[2:4, :, :] = mri_data[2:4, :, :] + noise_gauss1
+mri_data[4:6, :, :] = mri_data[4:6, :, :] + noise_gauss2
 
 batch_size = mri_data.shape[0];
 zoom_size = 80;
@@ -149,33 +163,47 @@ with tf.compat.v1.Session() as sess:
     np_im_rec = np.abs(np_im_rec);
     np_im_rec[np_im_rec > 1] = 1;
 
-    im1_gauss   = np_im_rec[0,:,:];
-    im2_gauss   = np_im_rec[1,:,:];
-    im1_poisson = np_im_rec[2,:,:];
-    im2_poisson = np_im_rec[3,:,:];
+    im1_no_noise = np_im_rec[0,:,:];
+    im2_no_noise = np_im_rec[1,:,:];
+    im1_gauss1   = np_im_rec[2,:,:];
+    im2_gauss1   = np_im_rec[3,:,:];
+    im1_gauss2   = np_im_rec[4,:,:];
+    im2_gauss2   = np_im_rec[5,:,:];
 
-    fname1_gauss = 'im_gauss_lasso_rec_p_20_nbr_0';
-    fname2_gauss = 'im_gauss_lasso_rec_p_20_nbr_1';
-    fname1_poisson = 'im_poisson_lasso_rec_p_20_nbr_0';
-    fname2_poisson = 'im_poisson_lasso_rec_p_20_nbr_1';
+    fname1_no_noise = f'im_no_noise_lasso_rec_nbr_0';
+    fname2_no_noise = f'im_no_noise_lasso_rec_nbr_1';
+    fname1_gauss1   = f'im_gauss1_lasso_rec_p_{round(1000*p)}_nbr_0';
+    fname2_gauss1   = f'im_gauss1_lasso_rec_p_{round(1000*p)}_nbr_1';
+    fname1_gauss2   = f'im_gauss2_lasso_rec_p_{round(1000*p)}_nbr_0';
+    fname2_gauss2   = f'im_gauss2_lasso_rec_p_{round(1000*p)}_nbr_1';
 
-    Image_im1_gauss = Image.fromarray(np.uint8(255*np.abs(im1_gauss)));
-    Image_im2_gauss = Image.fromarray(np.uint8(255*np.abs(im2_gauss)));
-    Image_im1_poisson = Image.fromarray(np.uint8(255*np.abs(im1_poisson)));
-    Image_im2_poisson = Image.fromarray(np.uint8(255*np.abs(im2_poisson)));
+    Image_im1_no_noise = Image.fromarray(np.uint8(255*np.abs(im1_no_noise)));
+    Image_im2_no_noise = Image.fromarray(np.uint8(255*np.abs(im2_no_noise)));
+    Image_im1_gauss1 = Image.fromarray(np.uint8(255*np.abs(im1_gauss1)));
+    Image_im2_gauss1 = Image.fromarray(np.uint8(255*np.abs(im2_gauss1)));
+    Image_im1_gauss2 = Image.fromarray(np.uint8(255*np.abs(im1_gauss2)));
+    Image_im2_gauss2 = Image.fromarray(np.uint8(255*np.abs(im2_gauss2)));
     
-    Image_im1_gauss_zoom = Image.fromarray(np.uint8(255*np.abs(im1_gauss[:zoom_size, -zoom_size:])));
-    Image_im2_gauss_zoom = Image.fromarray(np.uint8(255*np.abs(im2_gauss[:zoom_size, -zoom_size:])));
-    Image_im1_poisson_zoom = Image.fromarray(np.uint8(255*np.abs(im1_poisson[:zoom_size, -zoom_size:])));
-    Image_im2_poisson_zoom = Image.fromarray(np.uint8(255*np.abs(im2_poisson[:zoom_size, -zoom_size:])));
+    Image_im1_no_noise_zoom = Image.fromarray(np.uint8(255*np.abs(im1_no_noise[:zoom_size, -zoom_size:])));
+    Image_im2_no_noise_zoom = Image.fromarray(np.uint8(255*np.abs(im2_no_noise[-zoom_size:, -zoom_size:])));
+    Image_im1_gauss1_zoom = Image.fromarray(np.uint8(255*np.abs(im1_gauss1[:zoom_size, -zoom_size:])));
+    Image_im2_gauss1_zoom = Image.fromarray(np.uint8(255*np.abs(im2_gauss1[-zoom_size:, -zoom_size:])));
+    Image_im1_gauss2_zoom = Image.fromarray(np.uint8(255*np.abs(im1_gauss2[:zoom_size, -zoom_size:])));
+    Image_im2_gauss2_zoom = Image.fromarray(np.uint8(255*np.abs(im2_gauss2[-zoom_size:, -zoom_size:])));
 
-    Image_im1_gauss.save(join(dest_plots, fname1_gauss + '.png'));
-    Image_im2_gauss.save(join(dest_plots, fname2_gauss + '.png'));
-    Image_im1_poisson.save(join(dest_plots, fname1_poisson + '.png'));
-    Image_im2_poisson.save(join(dest_plots, fname2_poisson + '.png'));
+    Image_im1_no_noise.save(join(dest_plots, fname1_no_noise + '.png'));
+    Image_im2_no_noise.save(join(dest_plots, fname2_no_noise + '.png'));
+    Image_im1_gauss1.save(join(dest_plots, fname1_gauss1 + '.png'));
+    Image_im2_gauss1.save(join(dest_plots, fname2_gauss1 + '.png'));
+    Image_im1_gauss2.save(join(dest_plots, fname1_gauss2 + '.png'));
+    Image_im2_gauss2.save(join(dest_plots, fname2_gauss2 + '.png'));
     
-    Image_im1_gauss_zoom.save(join(dest_plots, fname1_gauss + '_zoom.png'));
-    Image_im2_gauss_zoom.save(join(dest_plots, fname2_gauss + '_zoom.png'));
-    Image_im1_poisson_zoom.save(join(dest_plots, fname1_poisson + '_zoom.png'));
-    Image_im2_poisson_zoom.save(join(dest_plots, fname2_poisson + '_zoom.png'));
+    Image_im1_no_noise_zoom.save(join(dest_plots, fname1_no_noise + '_zoom.png'));
+    Image_im2_no_noise_zoom.save(join(dest_plots, fname2_no_noise + '_zoom.png'));
+    Image_im1_gauss1_zoom.save(join(dest_plots, fname1_gauss1 + '_zoom.png'));
+    Image_im2_gauss1_zoom.save(join(dest_plots, fname2_gauss1 + '_zoom.png'));
+    Image_im1_gauss2_zoom.save(join(dest_plots, fname1_gauss2 + '_zoom.png'));
+    Image_im2_gauss2_zoom.save(join(dest_plots, fname2_gauss2 + '_zoom.png'));
+
+
 

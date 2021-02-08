@@ -105,7 +105,7 @@ samp = np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_
 samp = np.expand_dims(samp, -1)
 
 
-HCP_nbr = 1033
+HCP_nbr = 1004
 data = scipy.io.loadmat(join(src_im_rec, f'im_rec_automap_HCP_{HCP_nbr}.mat'));
 
 mri_data = data['mri_data'];
