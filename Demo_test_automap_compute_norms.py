@@ -35,7 +35,7 @@ if not (os.path.isdir(dest_plots)):
 
 N = 128
 
-samp = np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_mask']).astype(np.bool))
+samp = np.swapaxes(np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_mask']).astype(np.bool)),0,1)
 k_mask_idx1, k_mask_idx2 = read_automap_k_space_mask();
 
 extract_null_space1 = lambda im: extract_null_space(im, k_mask_idx1, k_mask_idx2);

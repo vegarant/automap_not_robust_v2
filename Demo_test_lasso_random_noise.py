@@ -100,7 +100,7 @@ real_idwt = idwt2d(tf.math.real(result_coeffs), wav, levels)
 imag_idwt = idwt2d(tf.math.imag(result_coeffs), wav, levels)
 tf_recovery = tf.complex(real_idwt, imag_idwt)
 
-samp = np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_mask']).astype(np.bool))
+samp = np.swapaxes(np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_mask']).astype(np.bool)), 0,1)
 samp = np.expand_dims(samp, -1)
 
 # Read the data.
@@ -129,8 +129,8 @@ mri_data[5, :, :] = data['im'][36]
 
 p = 0.04
 
-noise_dict    = scipy.io.loadmat(join(src_noise, f'noise_{round(1000*p)}_automap.mat')) 
-noise_gauss1   = noise_dict['noise_gauss1'];
+noise_dict   = scipy.io.loadmat(join(src_noise, f'noise_{round(1000*p)}_automap.mat')) 
+noise_gauss1 = noise_dict['noise_gauss1'];
 noise_gauss2 = noise_dict['noise_gauss2'];
 
 mri_data[0:2, :, :] = mri_data[0:2, :, :] 

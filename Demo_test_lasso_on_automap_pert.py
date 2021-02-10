@@ -112,7 +112,7 @@ sigma = 0.6
 lam = 0.0001
 
 
-samp = np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_mask']).astype(np.bool))
+samp = np.swapaxes(np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_mask']).astype(np.bool)), 0,1)
 
 runner_automap = load_runner(runner_id_automap);
 

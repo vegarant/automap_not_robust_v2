@@ -101,7 +101,7 @@ real_idwt = idwt2d(tf.math.real(result_coeffs), wav, levels)
 imag_idwt = idwt2d(tf.math.imag(result_coeffs), wav, levels)
 tf_recovery = tf.complex(real_idwt, imag_idwt)
 
-samp = np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_mask']).astype(np.bool))
+samp = np.swapaxes(np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_mask']).astype(np.bool)), 0,1)
 samp = np.expand_dims(samp, -1)
 
 
