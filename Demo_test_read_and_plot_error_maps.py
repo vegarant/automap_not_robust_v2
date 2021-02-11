@@ -3,12 +3,14 @@ from scipy.io import loadmat
 import numpy as np
 from os.path import join
 import os
+from adv_tools_PNAS.adversarial_tools import l2_norm_of_tensor, scale_to_01
+
 
 HCP_nbr1 = 1002
-HCP_nbr2 = 1004
+HCP_nbr2 = 1010
 
-im_nbrs1 = [37, 49] # 39, 43
-im_nbrs2 = [2, 8]
+im_nbrs1 = [37, 49, 58] # 39, 43
+im_nbrs2 = [116]
 
 HCP = [HCP_nbr1]*len(im_nbrs1) + [HCP_nbr2]*len(im_nbrs2) 
 im_nbrs = im_nbrs1 + im_nbrs2
@@ -70,6 +72,11 @@ for i in range(number_of_images):
     diff_automap = np.abs(all_recs_auto[i] - all_images[i])
     diff_lasso   = np.abs(all_recs_lasso[i] - all_images[i])
 
+    MSE_auto = (l2_norm_of_tensor(diff_automap)**2)/np.prod(diff_automap.shape);
+    MSE_lasso = (l2_norm_of_tensor(diff_lasso)**2)/np.prod(diff_lasso.shape);
+    psnr_auto = 10*np.log10(1/MSE_auto)
+    psnr_lasso = 10*np.log10(1/MSE_lasso)
+    print(f'HCP_nbr: {HCP[i]}, im nbr: {im_nbrs[i]}, psnr_auto: {psnr_auto}, psnr_lasso: {psnr_lasso}')
     diff_im_automap = 1 - (diff_automap/max_err);
     diff_im_lasso   = 1 - (diff_lasso/max_err);
 
