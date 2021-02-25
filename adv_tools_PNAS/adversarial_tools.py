@@ -3,6 +3,12 @@ import sys;
 
 l2_norm_of_tensor = lambda x: np.sqrt((abs(x)**2).sum());
 
+def cut_to_01(im):
+    """ Scales all array values to the interval [0,1] using an affine map."""
+    new_im = np.abs(im.copy()).astype(np.float64);
+    new_im[new_im > 1] = 1;
+    return new_im;
+
 def scale_to_01(im):
     """ Scales all array values to the interval [0,1] using an affine map."""
     ma = np.amax(im);
@@ -10,6 +16,9 @@ def scale_to_01(im):
     new_im = im.copy();
     return (new_im-mi)/(ma-mi);
 
+def compute_RMSE(rec, ref):
+    diff = l2_norm_of_tensor(rec-ref)/np.sqrt(np.prod(rec.shape))
+    return diff
 
 def compute_psnr(rec, ref):
     """

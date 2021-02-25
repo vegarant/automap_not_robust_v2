@@ -10,9 +10,11 @@ The data related to the paper can be downloaded from [here](https://www.mn.uio.n
 ----------------------------
 
 * Figure 1: Demo_test_automap_stability.py
-* Figure 2: Demo_test_automap_random_noise.py and Demo_test_lasso_random_noise.py
-* Figure 3: Demo_test_lasso_stability.py and Demo_test_lasso_on_automap_pert.py
-* Figure 4: Demo_test_automap_random_noise.py and Demo_test_lasso_random_noise.py
+* Figure 2: Demo_test_automap_random_noise.py, Demo_test_lasso_random_noise.py and Demo_read_random_noise.py
+* Extended Data Figure 1: Demo_test_lasso_stability.py and Demo_test_lasso_on_automap_pert.py
+* Extended Data Figure 2: Demo_test_automap_non_zero_mean_noise.py and Demo_test_lasso_non_zero_mean_noise.py
+* Extended Data Figure 3: Demo_test_automap_error_map.py, Demo_test_lasso_error_map.py and Demo_test_read_and_plot_error_maps.py
+* Extended Data Table 1: 
 * SI Table 2: Demo_test_automap_compute_norms.py
 
 ---------------------------

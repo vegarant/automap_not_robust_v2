@@ -20,10 +20,13 @@ from tfwavelets.dwtcoeffs import get_wavelet
 from tfwavelets.nodes import idwt2d
 from PIL import Image
 import matplotlib.image as mpimg;
+import scipy.io
 
 from adv_tools_PNAS.automap_config import src_data;
-from adv_tools_PNAS.adversarial_tools import l2_norm_of_tensor
+from adv_tools_PNAS.adversarial_tools import l2_norm_of_tensor, cut_to_01
+from adv_tools_PNAS.automap_tools import read_automap_k_space_mask
 from adv_tools_PNAS.Runner import Runner;
+from utils import convert_automap_samples_to_tf_samples_in_image_domain
 
 src_noise = 'data_random';
 
@@ -63,7 +66,11 @@ if not (os.path.isdir(dest_plots)):
 n_iter = 1000
 tau = 0.6
 sigma = 0.6
-lam = 0.001
+lam = 0.0001
+
+############################################################################
+###                     Build Tensorflow Graph                           ###
+############################################################################
 
 # Parameters for CS algorithm
 pl_sigma = tf.compat.v1.placeholder(dtype, shape=(), name='sigma')
@@ -103,42 +110,25 @@ tf_recovery = tf.complex(real_idwt, imag_idwt)
 samp = np.swapaxes(np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_mask']).astype(np.bool)), 0,1)
 samp = np.expand_dims(samp, -1)
 
-# Read the data.
-# Images:
-im1 = np.asarray(Image.open(join(src_data, 'brain1_128_anonymous.png')), dtype=sdtype)/255;
-im2 = np.asarray(Image.open(join(src_data, 'brain2_128_anonymous.png')), dtype=sdtype)/255;
-print('np.amax(im1): ', np.amax(im1));
-print('np.amin(im1): ', np.amin(im1));
-print('im1.dtype: ', im1.dtype);
+k_mask_idx1, k_mask_idx2 = read_automap_k_space_mask();
 
+p = 0.06
+fname_data = 'noise_gauss_%d_automap.mat' % (round(1000*p))
+data = scipy.io.loadmat(join(src_noise, fname_data))
+image = np.squeeze(data['mri_data'])
+image = np.expand_dims(image, -1)
+print(data['noise_gauss'].shape);
+noise = convert_automap_samples_to_tf_samples_in_image_domain(data['noise_gauss'], 
+                                                              k_mask_idx1,
+                                                              k_mask_idx2)
 
-HCP_nbr = 1002
-data = scipy.io.loadmat(join(src_data, f'HCP_mgh_{HCP_nbr}_T2_subset_N_128.mat'));
-
-mri_data = data['im'];
-new_im1 = mpimg.imread(join(src_data, 'brain1_128_anonymous.png'))
-#new_im2 = mpimg.imread(join(src_data, 'brain2_128_anonymous.png'))
-
-mri_data = np.zeros([6, N,N], dtype=sdtype)
-mri_data[0, :, :] = new_im1
-mri_data[1, :, :] = data['im'][36]
-mri_data[2, :, :] = new_im1
-mri_data[3, :, :] = data['im'][36]
-mri_data[4, :, :] = new_im1
-mri_data[5, :, :] = data['im'][36]
-
-p = 0.04
-
-noise_dict   = scipy.io.loadmat(join(src_noise, f'noise_{round(1000*p)}_automap.mat')) 
-noise_gauss1 = noise_dict['noise_gauss1'];
-noise_gauss2 = noise_dict['noise_gauss2'];
-
-mri_data[0:2, :, :] = mri_data[0:2, :, :] 
-mri_data[2:4, :, :] = mri_data[2:4, :, :] + noise_gauss1
-mri_data[4:6, :, :] = mri_data[4:6, :, :] + noise_gauss2
+mri_data = np.zeros([2, N, N], dtype=np.complex128);
+mri_data[0,:,:] = np.squeeze(image.copy())
+mri_data[1,:,:] = np.squeeze(image.copy()) + np.squeeze(noise)
 
 batch_size = mri_data.shape[0];
 zoom_size = 80;
+
 with tf.compat.v1.Session() as sess:
 
     sess.run(tf.compat.v1.global_variables_initializer())
@@ -159,51 +149,38 @@ with tf.compat.v1.Session() as sess:
                                                  'sampling_pattern:0': samp})
         np_im_rec[i,:,:] = _rec[:,:,0];
 
+    np_im_rec = cut_to_01(np_im_rec);
 
-    np_im_rec = np.abs(np_im_rec);
-    np_im_rec[np_im_rec > 1] = 1;
+    im_no_noise = np_im_rec[0,:,:];
+    im_gauss = np_im_rec[1,:,:];
 
-    im1_no_noise = np_im_rec[0,:,:];
-    im2_no_noise = np_im_rec[1,:,:];
-    im1_gauss1   = np_im_rec[2,:,:];
-    im2_gauss1   = np_im_rec[3,:,:];
-    im1_gauss2   = np_im_rec[4,:,:];
-    im2_gauss2   = np_im_rec[5,:,:];
 
-    fname1_no_noise = f'im_no_noise_lasso_rec_nbr_0';
-    fname2_no_noise = f'im_no_noise_lasso_rec_nbr_1';
-    fname1_gauss1   = f'im_gauss1_lasso_rec_p_{round(1000*p)}_nbr_0';
-    fname2_gauss1   = f'im_gauss1_lasso_rec_p_{round(1000*p)}_nbr_1';
-    fname1_gauss2   = f'im_gauss2_lasso_rec_p_{round(1000*p)}_nbr_0';
-    fname2_gauss2   = f'im_gauss2_lasso_rec_p_{round(1000*p)}_nbr_1';
+    fname_data = 'noise_gauss_%d_lasso.mat' % (round(1000*p))
+    scipy.io.savemat(join(dest_data, fname_data), {'mri_data': mri_data, 
+                                                   'noise_gauss': noise,
+                                                   'rec_no_noise': im_no_noise,
+                                                   'rec_gauss_noise': im_gauss});
 
-    Image_im1_no_noise = Image.fromarray(np.uint8(255*np.abs(im1_no_noise)));
-    Image_im2_no_noise = Image.fromarray(np.uint8(255*np.abs(im2_no_noise)));
-    Image_im1_gauss1 = Image.fromarray(np.uint8(255*np.abs(im1_gauss1)));
-    Image_im2_gauss1 = Image.fromarray(np.uint8(255*np.abs(im2_gauss1)));
-    Image_im1_gauss2 = Image.fromarray(np.uint8(255*np.abs(im1_gauss2)));
-    Image_im2_gauss2 = Image.fromarray(np.uint8(255*np.abs(im2_gauss2)));
-    
-    Image_im1_no_noise_zoom = Image.fromarray(np.uint8(255*np.abs(im1_no_noise[:zoom_size, -zoom_size:])));
-    Image_im2_no_noise_zoom = Image.fromarray(np.uint8(255*np.abs(im2_no_noise[-zoom_size:, -zoom_size:])));
-    Image_im1_gauss1_zoom = Image.fromarray(np.uint8(255*np.abs(im1_gauss1[:zoom_size, -zoom_size:])));
-    Image_im2_gauss1_zoom = Image.fromarray(np.uint8(255*np.abs(im2_gauss1[-zoom_size:, -zoom_size:])));
-    Image_im1_gauss2_zoom = Image.fromarray(np.uint8(255*np.abs(im1_gauss2[:zoom_size, -zoom_size:])));
-    Image_im2_gauss2_zoom = Image.fromarray(np.uint8(255*np.abs(im2_gauss2[-zoom_size:, -zoom_size:])));
+    fname_no_noise = f'im_rec_lasso_no_noise';
+    fname_gauss   = f'im_rec_lasso_gauss_p_{round(1000*p)}';
 
-    Image_im1_no_noise.save(join(dest_plots, fname1_no_noise + '.png'));
-    Image_im2_no_noise.save(join(dest_plots, fname2_no_noise + '.png'));
-    Image_im1_gauss1.save(join(dest_plots, fname1_gauss1 + '.png'));
-    Image_im2_gauss1.save(join(dest_plots, fname2_gauss1 + '.png'));
-    Image_im1_gauss2.save(join(dest_plots, fname1_gauss2 + '.png'));
-    Image_im2_gauss2.save(join(dest_plots, fname2_gauss2 + '.png'));
-    
-    Image_im1_no_noise_zoom.save(join(dest_plots, fname1_no_noise + '_zoom.png'));
-    Image_im2_no_noise_zoom.save(join(dest_plots, fname2_no_noise + '_zoom.png'));
-    Image_im1_gauss1_zoom.save(join(dest_plots, fname1_gauss1 + '_zoom.png'));
-    Image_im2_gauss1_zoom.save(join(dest_plots, fname2_gauss1 + '_zoom.png'));
-    Image_im1_gauss2_zoom.save(join(dest_plots, fname1_gauss2 + '_zoom.png'));
-    Image_im2_gauss2_zoom.save(join(dest_plots, fname2_gauss2 + '_zoom.png'));
+    Image_im_no_noise = Image.fromarray(np.uint8(255*np.abs(im_no_noise)));
+    Image_im_gauss = Image.fromarray(np.uint8(255*np.abs(im_gauss)));
+
+    Image_im_no_noise_zoom = Image.fromarray(np.uint8(255*np.abs(im_no_noise[:zoom_size, -zoom_size:])));
+    Image_im_gauss_zoom = Image.fromarray(np.uint8(255*np.abs(im_gauss[:zoom_size, -zoom_size:])));
+
+    Image_im_no_noise.save(join(dest_plots, fname_no_noise + '.png'));
+    Image_im_gauss.save(join(dest_plots, fname_gauss + '.png'));
+
+    Image_im_no_noise_zoom.save(join(dest_plots, fname_no_noise + '_zoom.png'));
+    Image_im_gauss_zoom.save(join(dest_plots, fname_gauss + '_zoom.png'));
+
+
+
+
+
+
 
 
 

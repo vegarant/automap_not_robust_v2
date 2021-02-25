@@ -1,3 +1,9 @@
+"""
+This script compute a LASSO reconstruction from noisy measurements. The noise 
+added to the measurements are the random (non-zero mean) noise produced by the 
+script 'Demo_test_automap_non_zero_mean.py'.
+"""
+
 import time
 import tensorflow as tf
 import numpy as np
@@ -58,7 +64,7 @@ if not (os.path.isdir(dest_plots)):
 n_iter = 1000
 tau = 0.6
 sigma = 0.6
-lam = 0.001
+lam = 0.0001
 
 ############################################################################
 ###                     Build Tensorflow Graph                           ###

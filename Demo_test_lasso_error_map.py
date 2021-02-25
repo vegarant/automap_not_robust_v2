@@ -1,7 +1,14 @@
 """
-This script reads the random noise generated in the script
-'Demo_test_automap_random_noise.py'. It samples the noisy images, and recover
-an approximation to these using the LASSO method.
+This script use the LASSO method to reconstruct images. The resulting images
+are stored in datasets which can be read by the script 'Demo_read_and_plot_error_maps.py'.
+Run the scripts in this order
+1. Demo_test_automap_error_map.py
+2. Demo_test_lasso_error_map.py
+3. Demo_read_and_plot_error_maps.py
+
+In the first two scripts it is necessary to run the scripts multiple times to 
+generate reconstructions from all the data. Change the `HCP_nbr` and 'use_HCP',
+to apply the script to all the data.
 """
 
 import time
@@ -22,7 +29,7 @@ from PIL import Image
 import matplotlib.image as mpimg;
 
 from adv_tools_PNAS.automap_config import src_data;
-from adv_tools_PNAS.adversarial_tools import l2_norm_of_tensor
+from adv_tools_PNAS.adversarial_tools import l2_norm_of_tensor, cut_to_01
 from adv_tools_PNAS.Runner import Runner;
 from scipy.io import savemat
 
@@ -64,7 +71,7 @@ if not (os.path.isdir(dest_plots)):
 n_iter = 1000
 tau = 0.6
 sigma = 0.6
-lam = 0.001
+lam = 0.0001
 
 # Parameters for CS algorithm
 pl_sigma = tf.compat.v1.placeholder(dtype, shape=(), name='sigma')
@@ -106,18 +113,25 @@ samp = np.expand_dims(samp, -1)
 
 
 HCP_nbr = 1004
-data = scipy.io.loadmat(join(src_im_rec, f'im_rec_automap_HCP_{HCP_nbr}.mat'));
+use_HCP = True
+if use_HCP:
+    data = scipy.io.loadmat(join(src_im_rec, f'im_rec_automap_HCP_{HCP_nbr}.mat'));
+else:
+    data = scipy.io.loadmat(join(src_im_rec, f'im_rec_automap_dataset1.mat'));
 
 mri_data = data['mri_data'];
 automap_im_rec = data['im_rec'];
 
 batch_size = mri_data.shape[0];
+
+print(f'Number of images: {batch_size}')
+
 with tf.compat.v1.Session() as sess:
 
     sess.run(tf.compat.v1.global_variables_initializer())
     weights = np.ones([128,128,1], dtype=sdtype);
 
-    lasso_im_rec = np.zeros([batch_size, N, N], dtype=scdtype);
+    lasso_im_rec = np.zeros([batch_size, N, N], dtype=sdtype);
 
     for i in range(batch_size):
         print(f'Reconstructing image: {i}')
@@ -130,10 +144,12 @@ with tf.compat.v1.Session() as sess:
                                                  'n_iter:0': n_iter,
                                                  'image:0': _image,
                                                  'sampling_pattern:0': samp})
-        lasso_im_rec[i,:,:] = np.abs(_rec[:,:,0]);
+        lasso_im_rec[i,:,:] = cut_to_01(_rec[:,:,0]);
 
-
+if use_HCP:
     savemat(join(dest_data, f'im_rec_lasso_HCP_{HCP_nbr}.mat'), {'lasso_im_rec': lasso_im_rec});
+else:
+    savemat(join(dest_data, f'im_rec_lasso_dataset1.mat'), {'lasso_im_rec': lasso_im_rec});
 
 #        bd = 5
 #        im_out = np.ones([2*N+bd, 2*N+bd]);

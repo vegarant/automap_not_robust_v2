@@ -1,4 +1,4 @@
-
+import numpy as np
 
 def convert_automap_samples_to_tf_samples_in_image_domain(samples, k_idx1, k_idx2):
     ''' Converts AUTOMAP samples adjusted to LASSO in Tensorflow

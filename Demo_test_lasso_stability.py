@@ -22,7 +22,7 @@ from tfwavelets.nodes import idwt2d
 from PIL import Image
 
 from adv_tools_PNAS.automap_config import src_data;
-from adv_tools_PNAS.adversarial_tools import scale_to_01, l2_norm_of_tensor
+from adv_tools_PNAS.adversarial_tools import cut_to_01, scale_to_01, l2_norm_of_tensor
 from adv_tools_PNAS.automap_tools import load_runner
 
 dest_data = 'data_lasso';
@@ -46,7 +46,7 @@ wavname = 'db2'
 levels = 3
 runner_id = 5
 use_gpu = True
-compute_node = 3
+compute_node = 2
 dtype = tf.float64;
 cdtype = tf.complex128
 wav = get_wavelet(wavname, dtype=dtype);
@@ -78,6 +78,7 @@ n_iter = 1000
 tau = 0.6
 sigma = 0.6
 lam = 0.0001
+
 
 
 samp = np.swapaxes(np.fft.fftshift(np.array(h5py.File(join(src_data, 'k_mask.mat'), 'r')['k_mask']).astype(np.bool)), 0,1);
@@ -256,8 +257,8 @@ with tf.compat.v1.Session() as sess:
             fname_out_adjoint = join(dest_plots_full, f'im_rID_{runner_id}_im_nbr_{im_nbr}_pert_nbr_{pert_nbr}_adjoint.png');
             fname_out_orig_p_noise = join(dest_plots_full, f'im_rID_{runner_id}_im_nbr_{im_nbr}_pert_nbr_{pert_nbr}_orig_p_noise.png');
 
-            im_rec = scale_to_01(np.abs(im_rec));
-            im_adjoint = scale_to_01(np.abs(im_adjoint));
+            im_rec = cut_to_01(np.abs(im_rec));
+            im_adjoint = cut_to_01(np.abs(im_adjoint));
             im_orig_p_noise = scale_to_01(np.abs(im_orig_p_noise));
 
             Image_im_rec = Image.fromarray(np.uint8(255*im_rec));
