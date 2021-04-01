@@ -11,19 +11,19 @@ from os.path import join;
 import os;
 import os.path;
 import _2fc_2cnv_1dcv_L1sparse_64x64_tanhrelu_upg as arch
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
+import matplotlib.image as mpimg;
 import numpy as np;
 from adv_tools_PNAS.automap_config import src_weights, src_data;
 from adv_tools_PNAS.automap_tools import read_automap_k_space_mask, compile_network, hand_f, hand_dQ, load_runner;
 from adv_tools_PNAS.adversarial_tools import scale_to_01
 from adv_tools_PNAS.Runner import Runner;
 from adv_tools_PNAS.Automap_Runner import Automap_Runner;
+import matplotlib.pyplot as plt
 
 from PIL import Image
+os.environ["CUDA_VISIBLE_DEVICES"]= "-1"
 
-HCP_nbr = 1033
-im_nbr = 2
+im_nbr = 0
 
 # Parameters to the worst case perturbation algorithm. 
 stab_eta = 0.001
@@ -31,10 +31,11 @@ stab_lambda = 0.1
 stab_gamma = 0.9
 stab_tau = 1e-5
 
-k_mask_idx1, k_mask_idx2 = read_automap_k_space_mask();
+k_mask_idx1, k_mask_idx2 = read_automap_k_space_mask()
 
-data = scipy.io.loadmat(join(src_data, f'HCP_mgh_{HCP_nbr}_T2_subset_N_128.mat'));
-mri_data = data['im'];
+pil_im = Image.open( join(src_data, 'knee_128.png') )
+mri_data = np.asarray(pil_im, dtype='float')/255
+mri_data = np.expand_dims(mri_data, 0)
 
 batch_size = mri_data.shape[0];
 
@@ -50,8 +51,6 @@ if not (os.path.isdir(plot_dest)):
     if not (os.path.isdir(split_dest)):
         os.mkdir(split_dest);
 
-
-
 # Optimization parameters
 max_itr = 8; # Update list below. This value is not relevant here
 max_r_norm = float('Inf');
@@ -66,7 +65,7 @@ momentum = stab_gamma;
 learning_rate = stab_eta;
 verbose=True; 
 
-sess = tf.Session();
+sess = tf.compat.v1.Session();
 
 raw_f, raw_df = compile_network(sess, batch_size);
 
@@ -88,9 +87,9 @@ runner = Automap_Runner(max_itr, max_r_norm, max_diff_norm,
                          );
 
 # Update the number of iteration you would like to run
-max_itr_schedule = [12, 4, 4, 4];
+max_itr_schedule = [8, 5, 4, 3];
 # max_itr_schedule = [160, 10, 7, 6];
-
+print('start searching for worst-case perturbation')
 for i in range(len(max_itr_schedule)):
     max_itr = max_itr_schedule[i];
     runner.max_itr = max_itr;
@@ -130,6 +129,3 @@ for i in range(len(runner1.r)):
     Image_im_right.save(fname_out_noisy_rec);
 
 sess.close();
-
-
-

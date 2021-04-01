@@ -1,9 +1,12 @@
 """
 This script reads the worst-case perturbations produced by the script
-'Demo_test_automap_stability.py', sample these perturbations and use the
-sampled perturbations as the mean for randomly drawn gaussian noise vectors.
-These noise vectors are then added to the measurements of other images than the
-worst-case perturbations where computed with respect to.
+'Demo_test_automap_stability.py' and 'Demo_test_automap_stability_knee.py',
+sample these perturbations and use the sampled perturbations as the mean for
+randomly drawn gaussian noise vectors.  These noise vectors are then added to
+the measurements of other images than the worst-case perturbations where
+computed with respect to.
+
+Adjust the variables 'runner_id_automap' and 'pert_nbr', to test the knee image
 """
 
 
@@ -23,10 +26,20 @@ from adv_tools_PNAS.automap_tools import load_runner, read_automap_k_space_mask,
 from scipy.io import loadmat, savemat
 import matplotlib.pyplot as plt
 
-runner_id_automap = 5;
+runner_id_automap = 5; # Set to 12, to test the knee image perturbations
+pert_nbr = 2; # Set to 0 to test the knee image perturbations
+print(f'runner id: {runner_id_automap}, pert nbr: {pert_nbr}')
 
 dest_plots = 'plots_non_zero_mean';
 dest_data = 'data_non_zero_mean';
+
+use_gpu = True
+compute_node = 2
+if use_gpu:
+    os.environ["CUDA_VISIBLE_DEVICES"]= "%d" % (compute_node)
+    print('Compute node: {}'.format(compute_node))
+else: 
+    os.environ["CUDA_VISIBLE_DEVICES"]= "-1"
 
 if not (os.path.isdir(dest_plots)):
     os.mkdir(dest_plots);
@@ -39,7 +52,6 @@ k_mask_idx1, k_mask_idx2 = read_automap_k_space_mask();
 
 runner = load_runner(runner_id_automap);
 
-pert_nbr = 2
 HCP_nbr = 1002
 data = loadmat(join(src_data, f'HCP_mgh_{HCP_nbr}_T2_subset_N_128.mat'));
 mri_data = data['im'];
@@ -74,7 +86,8 @@ for r_value in range(0,5):
     n_diff_e = l2_norm_of_tensor(e - e_random)
     n_e = l2_norm_of_tensor(e);
     n_y = l2_norm_of_tensor(Ax)
-    str1 = f"r: {r_value}, |e-e_rand|/|e|: {n_diff_e/n_e}";
+    n_r = l2_norm_of_tensor(rr);
+    str1 = f"r: {r_value}, |r|: {n_r}  |e-e_rand|/|e|: {n_diff_e/n_e}";
 
     data_dict[f"e{r_value}"] = e_random
 
@@ -91,9 +104,9 @@ for r_value in range(0,5):
         im_rec = np.uint8(np.squeeze(255*scale_to_01(raw_f(Ax+e_random))));
 
         pil_im_rec = Image.fromarray(im_rec);
-        pil_im_rec.save(join(dest_plots, f'im_rec_automap_HCP_{HCP_nbr}_im_nbr_{im_nbr}_random_non_zero_mean_r_idx_{r_value}.png'))
+        pil_im_rec.save(join(dest_plots, f'im_rec_rID_{runner_id_automap}_automap_HCP_{HCP_nbr}_im_nbr_{im_nbr}_random_non_zero_mean_r_idx_{r_value}.png'))
 
-savemat(join(dest_data, f"automap_random_pert.mat"), data_dict);
+savemat(join(dest_data, f"automap_rID_{runner_id_automap}_random_pert.mat"), data_dict);
 fID.close()
 
 
