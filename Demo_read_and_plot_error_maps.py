@@ -18,7 +18,7 @@ HCP_nbr1 = 1002
 HCP_nbr2 = 'dataset1'
 HCP_nbr3 = 1004
 
-im_nbrs1 = [49, 116, 150] # 39, 43
+im_nbrs1 = [49, 116, 150] 
 im_nbrs2 = [49]
 im_nbrs3 = []
 
