@@ -34,7 +34,7 @@ dest_plots = 'plots_non_zero_mean';
 dest_data = 'data_non_zero_mean';
 
 use_gpu = True
-compute_node = 2
+compute_node = 1
 if use_gpu:
     os.environ["CUDA_VISIBLE_DEVICES"]= "%d" % (compute_node)
     print('Compute node: {}'.format(compute_node))
@@ -51,7 +51,7 @@ N = 128
 k_mask_idx1, k_mask_idx2 = read_automap_k_space_mask();
 
 runner = load_runner(runner_id_automap);
-
+print(runner)
 HCP_nbr = 1002
 data = loadmat(join(src_data, f'HCP_mgh_{HCP_nbr}_T2_subset_N_128.mat'));
 mri_data = data['im'];
@@ -87,7 +87,7 @@ for r_value in range(0,5):
     n_e = l2_norm_of_tensor(e);
     n_y = l2_norm_of_tensor(Ax)
     n_r = l2_norm_of_tensor(rr);
-    str1 = f"r: {r_value}, |r|: {n_r}  |e-e_rand|/|e|: {n_diff_e/n_e}";
+    str1 = f"r: {r_value}, |r|: {n_r}  |e-e_rand|/|e|: {n_diff_e/n_e}, |e|: {n_e}";
 
     data_dict[f"e{r_value}"] = e_random
 

@@ -1,7 +1,7 @@
 clear('all') ; close('all');
 load('cilib_defaults.mat') % load font size, line width, etc.
 
-src_mask = '/mn/sarpanitu/ansatte-u4/vegarant/storage_matters_arising_final/matlab_masks';
+src_mask = '/mn/sarpanitu/ansatte-u4/vegarant/storage_matters_arising_final/fastMRI_masks';
 src = 'data';
 % Create destination for the plots
 dest = 'plots';
