@@ -1,7 +1,10 @@
 """
 This script reads the random noise generated in the script
-'Demo_test_automap_random_noise.py'. It samples the noisy images, and recover
-an approximation to these using the LASSO method.
+'Demo_test_automap_random_noise.py' and the unperturbed image. It samples the
+image with and without noise and reconstructs the two images with the LASSO
+method.
+
+Only the image reconstructed from the noiseless measurements is used in the paper.
 """
 
 import time

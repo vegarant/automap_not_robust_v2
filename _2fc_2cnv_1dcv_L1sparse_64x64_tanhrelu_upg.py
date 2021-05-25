@@ -1,7 +1,7 @@
 """
-This file was obtained via private communcation with Bo Zhu so that we could
-reproduce the network in the paper 'Image reconstruction by domain-transform
-manifold learning', Nature 2018.
+This file was obtained via private communication with Bo Zhu to reproduce the
+network in the paper 'Image reconstruction by domain-transform manifold
+learning', Nature 2018.
 """
 
 import scipy.io as sio

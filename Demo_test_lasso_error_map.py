@@ -1,14 +1,12 @@
 """
-This script use the LASSO method to reconstruct images. The resulting images
-are stored in datasets which can be read by the script 'Demo_read_and_plot_error_maps.py'.
+This script uses the LASSO method to reconstruct images. The resulting images are stored in datasets that can be read by the script 'Demo_read_and_plot_error_maps.py'.
+
 Run the scripts in this order
 1. Demo_test_automap_error_map.py
 2. Demo_test_lasso_error_map.py
 3. Demo_read_and_plot_error_maps.py
 
-In the first two scripts it is necessary to run the scripts multiple times to 
-generate reconstructions from all the data. Change the `HCP_nbr` and 'use_HCP',
-to apply the script to all the data.
+In the first two scripts, it is necessary to run the scripts multiple times to generate reconstructions from all the data. Change the `HCP_nbr` and 'use_HCP', to apply the script to all the data.
 """
 
 import time

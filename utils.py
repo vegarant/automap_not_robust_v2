@@ -14,7 +14,14 @@ Returns
 X (np.ndarray): The measurements in image corresponding to the samples in 
                 sampling domain for automap
 
-Note: This function convert samples in k-space sampled for AUTOMAP using the function `adv_tools_PNAS.automap_tools.sample_image` to the corresponding samples used for the LASSO method. This is done, by inverting the scaling from done by function `sample_image`, and insert these samples in a zero padded image and apply the adjoint. When we sample this adjoint, we get the corresponding measurements for the LASSO method. Note that this approach only works because AA* = Identity, where A is a subsampled (normalized) discrete Fourier Transform (DCT) matrix.
+Note: This function convert samples in k-space sampled for AUTOMAP using the
+function `adv_tools_PNAS.automap_tools.sample_image` to the corresponding
+samples used for the LASSO method. This is done by inverting the scaling from
+done by function `sample_image`, and insert these samples in a zero-padded
+image and apply the adjoint. When we sample this adjoint, we get the
+corresponding measurements for the LASSO method. This approach only works
+because AA* = Identity, where A is a subsampled (normalized) discrete Fourier
+Transform (DCT) matrix.
 '''
 
     size = samples.shape

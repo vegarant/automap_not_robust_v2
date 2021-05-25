@@ -1,5 +1,5 @@
 """
-This script computes perturbations v_j, meanth to illustrate worst-case effect 
+This script computes perturbations v_j, meant to illustrate worst-case effect
 for the LASSO method.
 """
 

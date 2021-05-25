@@ -1,6 +1,9 @@
 """
-This script add random noise in two images, sample them and compute the AUTOMAP
-reconstruction. The resulting images are stored as png images and in a .mat file
+This script reads an image provided by GE Healthcare and samples the image with
+and without random noise added to the measurements. The two reconstructed
+images are stored as png images and in a .mat file.    
+
+In the paper, only the reconstructed image from noiseless images is used. 
 """
 
 import tensorflow as tf;

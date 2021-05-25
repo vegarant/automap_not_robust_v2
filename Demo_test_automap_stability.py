@@ -1,7 +1,7 @@
 """
 This script searches for a perturbation to simulate worst-case effect for the
-AUTOMAP network. The result will be saved in a Runner object. Make sure you
-have updated the automap_config.py file before running this script.
+AUTOMAP network. The result is saved as a Runner object. Make sure you have
+updated the automap_config.py file before running this script.
 """
 
 import tensorflow as tf;

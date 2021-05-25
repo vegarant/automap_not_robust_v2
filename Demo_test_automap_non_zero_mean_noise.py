@@ -1,10 +1,10 @@
 """
 This script reads the worst-case perturbations produced by the script
 'Demo_test_automap_stability.py' and 'Demo_test_automap_stability_knee.py',
-sample these perturbations and use the sampled perturbations as the mean for
+samples these perturbations, and use the sampled perturbations as the mean for
 randomly drawn gaussian noise vectors.  These noise vectors are then added to
-the measurements of other images than the worst-case perturbations where
-computed with respect to.
+the measurements of other images than the worst-case perturbations were
+computed for.
 
 Adjust the variables 'runner_id_automap' and 'pert_nbr', to test the knee image
 """
