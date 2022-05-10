@@ -1,6 +1,9 @@
 """
 This script computes perturbations v_j, meant to illustrate worst-case effect
 for the LASSO method.
+
+Please run the script 'Demo_test_automap_stability.py' prior to running this 
+script to create a runner object.
 """
 
 

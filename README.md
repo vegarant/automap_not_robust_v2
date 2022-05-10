@@ -8,11 +8,12 @@ The data used in the paper can be downloaded from [here](https://www.mn.uio.no/m
 ## Overview of the different files
 ----------------------------
 
-* Figure 1: Demo_test_automap_non_zero_mean_noise.py and Demo_test_lasso_non_zero_mean_noise.py
+* Figure 1: Demo_test_automap_stability.py and Demo_test_automap_non_zero_mean_noise.py.
 * Figure 2: Demo_test_automap_error_map.py, Demo_test_lasso_error_map.py and Demo_test_read_and_plot_error_maps.py
-* Extended Data Figure 1: Demo_test_automap_stability.py Demo_test_lasso_stability.py
+* Extended Data Figure 1: Demo_test_automap_stability.py and Demo_test_lasso_stability.py
 * Extended Data Table 1: Demo_test_automap_compute_norms.py
-* SI Figure 3: Demo_test_automap_stability_knee.py, Demo_test_automap_non_zero_mean_noise.py and Demo_test_lasso_non_zero_mean_noise.py
+* SI Figure 3: See https://github.com/vegarant/new_experiment_zero_mean
+* SI Figure 4: Demo_test_automap_stability_knee.py, Demo_test_automap_non_zero_mean_noise.py and Demo_test_lasso_non_zero_mean_noise.py
 * SI Table 1: Use scripts in matlab folder.
 
 ---------------------------
